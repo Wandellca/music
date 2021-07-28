@@ -7,7 +7,7 @@ export const AudioContext = createContext();
 export class ProvedorAudio extends Component{    
     constructor(props){
         super(props);
-        this.state={audioFiles:[],permissionError:false,dataProvider:new DataProvider((r1,r2)=>r1!==r2),playbackObj:null,isPlaying:false,soundObj:null,currentAudio:{},currentAudioIndex:null}; 
+        this.state={audioFiles:[],permissionError:false,dataProvider:new DataProvider((r1,r2)=>r1!==r2),playbackObj:null,isPlaying:false,soundObj:null,currentAudio:{},currentAudioIndex:null,playbackPosition:null,playbackDuration:null}; 
         this.totalAudioCount = 0;
     }
     
@@ -86,7 +86,7 @@ export class ProvedorAudio extends Component{
     }
 
     render(){
-        const {audioFiles,dataProvider,permissionError,playbackObj,soundObj,currentAudio,isPlaying,currentAudioIndex} = this.state
+        const {audioFiles,dataProvider,permissionError,playbackObj,soundObj,currentAudio,isPlaying,currentAudioIndex,playbackPosition,playbackDuration} = this.state
         if(permissionError)
         {
             return(
@@ -100,7 +100,7 @@ export class ProvedorAudio extends Component{
         }
 
         return(
-          <AudioContext.Provider value={{audioFiles,dataProvider,playbackObj,soundObj,currentAudio,isPlaying,currentAudioIndex,updadeState:this.updadeState,totalAudioCount:this.totalAudioCount,}}>
+          <AudioContext.Provider value={{audioFiles,dataProvider,playbackObj,soundObj,currentAudio,isPlaying,currentAudioIndex,playbackPosition,playbackDuration,updadeState:this.updadeState,totalAudioCount:this.totalAudioCount}}>
              {this.props.children} 
           </AudioContext.Provider>
         );

@@ -30,6 +30,16 @@ export class Lista extends Component{
         }        
     });
 
+    onPlaybackStatusUpdate = (playbackStatus) =>{
+        if(playbackStatus.isLoaded && playbackStatus.isPlaying)
+        {
+            this.context.updadeState(this.context,{
+                playbackPosition:playbackStatus.positionMillis,
+                playbackDuration:playbackStatus.durationMillis,
+            });
+        }
+    };
+// 16
     handleAudioPress= async(audio)=>{
 
         const {playbackObj,soundObj,currentAudio,updadeState,audioFiles} = this.context;
@@ -39,7 +49,8 @@ export class Lista extends Component{
             const playbackObj = new Audio.Sound();
             const status = await play(playbackObj,audio.uri); // console.log(status);         
             const index = audioFiles.indexOf(audio);
-            return updadeState(this.context,{currentAudio:audio,playbackObj:playbackObj,isPlaying:true,currentAudioIndex:index,soundObj:status});               
+            updadeState(this.context,{currentAudio:audio,playbackObj:playbackObj,isPlaying:true,currentAudioIndex:index,soundObj:status});   
+            return playbackObj.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate);
         }
         //pause audio
         if(soundObj.isLoaded && soundObj.isPlaying && currentAudio.id === audio.id)

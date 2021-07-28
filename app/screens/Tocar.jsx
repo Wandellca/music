@@ -12,11 +12,19 @@ const {width} =Dimensions.get('window');
 const Tocar = () =>
 {
     const context = useContext(AudioContext);
+    const {playbackPosition,playbackDuration}=context;
+    const calcularSeebBar =() =>{
+        if(playbackPosition!==null && playbackDuration!==null){
+            return playbackPosition / playbackDuration;
+        }
+        return 0;
+    };
+
     return<Screen>
             <View style={styles.container}>
                 <Text style={styles.audioCount}>{`${context.currentAudioIndex+1}/${context.totalAudioCount}`}</Text>
                 <View style={styles.midBannerContainer}> 
-                    <MaterialCommunityIcons name="music-clef-treble" size={350} color={color.ACTIVE_BG}  /> 
+                    <MaterialCommunityIcons name="music-clef-treble" size={350} color={context.isPlaying ? color.ACTIVE_BG : color.FONT_MEDIUM }/> 
                     {/* <Feather name="message-circle" size={370} color="black" style={styles.icon} />  style={styles.icon1} 230 */}
                     {/* <Feather name="circle" size={370} color="black" style={styles.icon}/>*/}
                     {/* <FontAwesome name="circle" size={370} color="#F5DEB3" style={styles.icon}/>  */}
@@ -26,19 +34,19 @@ const Tocar = () =>
                     style={{width: width, height: 40}}
                     minimumValue={0}
                     maximumValue={1}
+                    value={calcularSeebBar()}
                     minimumTrackTintColor={color.FONT_MEDIUM}
                     maximumTrackTintColor={color.ACTIVE_BG}
                 />
                 <View style={styles.audioControlles}>
                     <PlayerButton iconType='PREVIOUS'/>
-                    <PlayerButton onPress={()=>console.log('OK2')} style={{marginHorizontal:25}} iconType='PLAY'/>
-                    <PlayerButton iconType='PAUSE'/>
+                    <PlayerButton onPress={()=>console.log('OK2')} style={{marginHorizontal:25}} iconType={context.isPlaying ? 'PLAY' : 'PAUSE' }/>                    
                     <PlayerButton iconType='NEXT'/>                    
                 </View>
             </View>
         </Screen>;
 };
-// GiRaiseSkeleton    15 => 5:25
+// GiRaiseSkeleton 
 const styles = StyleSheet.create
 ({
     container:{flex:1,},
