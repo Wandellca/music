@@ -1,5 +1,8 @@
 node_modules/
 .expo/
+.expo-shared
+expo-constants
+expo-media-library
 npm-debug.*
 *.jks
 *.p8
