@@ -7,6 +7,7 @@ import Screen from '../components/Screen';
 import {AudioContext } from '../context/ProvedorAudio';
 import {Audio} from 'expo-av';
 import {play,pause,resume,playNext} from '../misc/audioController';
+import { storeAudioForNextOpening } from '../misc/helper';
 
 export class Lista extends Component{
     static contextType = AudioContext;
@@ -30,16 +31,43 @@ export class Lista extends Component{
         }        
     });
 
-    onPlaybackStatusUpdate = (playbackStatus) =>{
-        if(playbackStatus.isLoaded && playbackStatus.isPlaying)
-        {
-            this.context.updadeState(this.context,{
-                playbackPosition:playbackStatus.positionMillis,
-                playbackDuration:playbackStatus.durationMillis,
-            });
-        }
-    };
-// 16
+    // onPlaybackStatusUpdate = async playbackStatus =>{
+    //     if(playbackStatus.isLoaded && playbackStatus.isPlaying)
+    //     {
+    //         this.context.updadeState(this.context,{
+    //             playbackPosition:playbackStatus.positionMillis,
+    //             playbackDuration:playbackStatus.durationMillis,
+    //         });
+    //     }
+    //     if(playbackStatus.didJustFinished)
+    //     {
+    //       const nextAudioIndex= this.context.currentAudioIndex+1;
+    //       if(nextAudioIndex >= this.context.totalAudioCount)
+    //       {
+    //         this.context.playbackObj.unloadAsync();
+    //         this.context.updadeState(this.context,{
+    //             soundObj:null,
+    //             currentAudio:this.context.audioFiles[0],
+    //             isPlaying:false,
+    //             currentAudioIndex:0,
+    //             playbackPosition:null,
+    //             playbackDuration:null,
+    //         });
+    //         return await storeAudioForNextOpening(this.context.audioFiles[0],0);
+    //       }
+
+    //       const audio = this.context.audioFiles[nextAudioIndex];
+    //       const status = await playNext(this.context.playbackObj,audio.uri);
+    //       this.context.updadeState(this.context,{
+    //           soundObj:status,
+    //           currentAudio:audio,
+    //           isPlaying:true,
+    //           currentAudioIndex:nextAudioIndex,
+    //       });
+    //       await storeAudioForNextOpening(audio,nextAudioIndex)
+    //     }
+    // };
+
     handleAudioPress= async(audio)=>{
 
         const {playbackObj,soundObj,currentAudio,updadeState,audioFiles} = this.context;
@@ -50,14 +78,15 @@ export class Lista extends Component{
             const status = await play(playbackObj,audio.uri); // console.log(status);         
             const index = audioFiles.indexOf(audio);
             updadeState(this.context,{currentAudio:audio,playbackObj:playbackObj,isPlaying:true,currentAudioIndex:index,soundObj:status});   
-            return playbackObj.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate);
+            playbackObj.setOnPlaybackStatusUpdate(this.context.onPlaybackStatusUpdate);
+            return storeAudioForNextOpening(audio,index);
         }
         //pause audio
         if(soundObj.isLoaded && soundObj.isPlaying && currentAudio.id === audio.id)
         {   
             const status = await pause(playbackObj);
             return updadeState(this.context,{isPlaying:false,soundObj:status});            
-            // return this.setState({...this.state,soundObj:status,});//aula de numero 9 
+            // return this.setState({...this.state,soundObj:status,});
         }
         //resume audio
         if(soundObj.isLoaded && !soundObj.isPlaying && currentAudio.id === audio.id)
@@ -71,34 +100,36 @@ export class Lista extends Component{
          {   
              const status =  await playNext(playbackObj,audio.uri);
              const index = audioFiles.indexOf(audio);
-             return updadeState(this.context,{currentAudio:audio,isPlaying:true,currentAudioIndex:index,soundObj:status,});  
+             updadeState(this.context,{currentAudio:audio,isPlaying:true,currentAudioIndex:index,soundObj:status,});  
+             return storeAudioForNextOpening(audio,index);
          }
+    };
+
+    componentDidMount(){
+        this.context.loadPreviousAudio();
     };
 
     rowRenderer = (type,item,index,extendedState) => {       
         return( <MusicasItem title={item.filename} duration={item.duration} onOptionPress={()=>{this.currentItem=item; this.setState({...this.state,OptionModalVisible:true});}} onAudioPress={()=>this.handleAudioPress(item)} isPlaying={extendedState.isPlaying} activeListItem={this.context.currentAudioIndex===index} /> );
     };
+
     render(){        
         return( 
             <AudioContext.Consumer>
-                {({dataProvider,isPlaying})=>{                   
-                    return( 
-                        <>
+                {({dataProvider,isPlaying})=>{    
+                    if(!dataProvider._data.length) return null;               
+                    return(<>
                             <Screen>                            
                                 <RecyclerListView dataProvider={dataProvider} layoutProvider={this.layoutProvider} rowRenderer={this.rowRenderer} extendedState={{isPlaying}}/>    
-                                <OptionModal onPlayPress={()=>console.log('Play')} onPlayListPress={()=>console.log('Play List')} currentItem={this.currentItem} onClose={()=>this.setState({...this.state,OptionModalVisible:false})} visible={this.state.OptionModalVisible}/>                    
-                            </Screen>
-                             {/* <Screen>                                                                                          
-                                <RecyclerListView dataProvider={dataProvider} layoutProvider={this.layoutProvider} rowRenderer={this.rowRenderer}/>    
-                                <OptionModal currentItem={this.currentItem} onClose={()=>this.setState({...this.state,OptionModalVisible:false})} visible={this.state.OptionModalVisible}/>                    
-                            </Screen> */}
+                                <OptionModal onPlayPress={()=>console.log('Play')} onPlayListPress={()=>{this.props.navigation.navigate('Conjunto');}} currentItem={this.currentItem} onClose={()=>this.setState({...this.state,OptionModalVisible:false})} visible={this.state.OptionModalVisible}/>                    
+                            </Screen>                           
                         </>
                     );
                 }}
             </AudioContext.Consumer>
         );
     }
-}
+} 
 
 const styles = StyleSheet.create
 ({
